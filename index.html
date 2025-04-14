@@ -1,79 +1,70 @@
-<!doctype html>
-<html>
-    <head>
-        <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
-        <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-        <script>
-            AFRAME.registerComponent('videohandler', {
-                init: function () {
-                    var marker = this.el;
-                    this.vid = document.querySelector("#vid");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>牙齒圖表示範</title>
+  <style>
+    svg {
+      width: 100%;
+      max-width: 600px;
+    }
+    .tooth {
+      cursor: pointer;
+      fill: white;
+      stroke: black;
+      stroke-width: 1;
+    }
+    .prosthetic {
+      fill: gray;
+    }
+    .missing {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>上排牙齒圖表示範</h2>
+  <svg viewBox="0 0 600 100">
+    <!-- 8 顆牙齒（右到左：18 ~ 11） -->
+    <g id="tooth-18" class="tooth" onclick="cycleToothState(this)" transform="translate(0,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-17" class="tooth" onclick="cycleToothState(this)" transform="translate(60,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-16" class="tooth" onclick="cycleToothState(this)" transform="translate(120,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-15" class="tooth" onclick="cycleToothState(this)" transform="translate(180,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-14" class="tooth" onclick="cycleToothState(this)" transform="translate(240,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-13" class="tooth" onclick="cycleToothState(this)" transform="translate(300,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-12" class="tooth" onclick="cycleToothState(this)" transform="translate(360,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+    <g id="tooth-11" class="tooth" onclick="cycleToothState(this)" transform="translate(420,0)">
+      <rect x="0" y="10" width="50" height="80" />
+    </g>
+  </svg>
 
-                    marker.addEventListener('markerFound', function () {
-                        this.toggle = true;
-                        this.vid.play();
-                    }.bind(this));
-
-                    marker.addEventListener('markerLost', function () {
-                        this.toggle = false;
-                        this.vid.pause();
-                    }.bind(this));
-                },
-            });
-        </script>
-    </head>
-
-    <body style="margin: 0; overflow: hidden;">
-        <a-scene
-            vr-mode-ui="enabled: false"
-            loading-screen="enabled: false;"
-            arjs='sourceType: webcam; debugUIEnabled: false;'
-            id="scene"
-            embedded
-            gesture-detector
-        >
-            <a-assets>
-                <video
-                    id="vid"
-                    src="assets/asset.mp4"
-                    preload="auto"
-                    response-type="arraybuffer"
-                    loop
-                    crossorigin
-                    webkit-playsinline
-                    autoplay
-                    muted
-                    playsinline
-                ></video>
-            </a-assets>
-
-            <a-marker
-                type="pattern"
-                preset="custom"
-                url="assets/marker.patt"
-                videohandler
-                smooth="true"
-                smoothCount="10"
-                smoothTolerance="0.01"
-                smoothThreshold="5"
-                raycaster="objects: .clickable"
-                emitevents="true"
-                cursor="fuse: false; rayOrigin: mouse;"
-                id="markerA"
-            >
-                <a-video
-                    src="#vid"
-                    scale="1 1 1"
-                    position="0 0.1 0"
-                    rotation="-90 0 0"
-                    class="clickable"
-                    gesture-handler
-                ></a-video>
-            </a-marker>
-
-            <a-entity camera></a-entity>
-        </a-scene>
-    </body>
+  <script>
+    function cycleToothState(el) {
+      if (el.classList.contains('missing')) {
+        el.classList.remove('missing');
+        el.classList.remove('prosthetic');
+      } else if (el.classList.contains('prosthetic')) {
+        el.classList.add('missing');
+        el.classList.remove('prosthetic');
+      } else {
+        el.classList.add('prosthetic');
+      }
+    }
+  </script>
+</body>
 </html>
