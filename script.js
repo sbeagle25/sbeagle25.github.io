@@ -13,10 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // FDI編號
     const fdiNumbers = [
-        18, 17, 16, 15, 14, 13, 12, 11, // 右上
-        21, 22, 23, 24, 25, 26, 27, 28, // 左上
-        38, 37, 36, 35, 34, 33, 32, 31, // 左下
-        41, 42, 43, 44, 45, 46, 47, 48  // 右下
+        18, 17, 16, 15, 14, 13, 12, 11,
+        21, 22, 23, 24, 25, 26, 27, 28,
+        38, 37, 36, 35, 34, 33, 32, 31,
+        41, 42, 43, 44, 45, 46, 47, 48
     ];
 
     // 牙齒參數
@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const toothNum = fdiNumbers[i];
             const isUpper = i < 16;
             let x;
-            if (i < 8) x = startX + i * (toothWidth + gap); // 右上
-            else if (i < 16) x = startX + (i - 8) * (toothWidth + gap); // 左上
-            else if (i < 24) x = startX + (23 - i) * (toothWidth + gap); // 左下
-            else x = startX + (31 - i) * (toothWidth + gap); // 右下
+            if (i < 8) x = startX + i * (toothWidth + gap);
+            else if (i < 16) x = startX + (i - 8) * (toothWidth + gap);
+            else if (i < 24) x = startX + (23 - i) * (toothWidth + gap);
+            else x = startX + (31 - i) * (toothWidth + gap);
 
             const y = isUpper ? upperY : lowerY;
             const rootY = y + toothHeight;
@@ -68,17 +68,18 @@ document.addEventListener('DOMContentLoaded', () => {
             crown.setAttribute('height', toothHeight);
             crown.classList.add('tooth-crown');
 
-            // 牙根（極簡化 points）
+            // 牙根
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             const x1 = x;
             const y1 = rootY;
             const x2 = x + toothWidth;
             const y2 = rootY;
-            const x3 = x + toothWidth * 0.8;
+            const x3 = x + (toothWidth * 4 / 5); // 取代 0.8，避免浮點問題
             const y3 = rootY + rootHeight;
-            const x4 = x + toothWidth * 0.2;
+            const x4 = x + (toothWidth * 1 / 5); // 取代 0.2
             const y4 = rootY + rootHeight;
             const points = `${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`;
+            console.log(`Tooth ${toothNum} points values: x1=${x1}, y1=${y1}, x2=${x2}, y2=${y2}, x3=${x3}, y3=${y3}, x4=${x4}, y4=${y4}`);
             root.setAttribute('points', points);
             root.classList.add('tooth-root');
 
