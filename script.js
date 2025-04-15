@@ -13,37 +13,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // FDI編號
     const fdiNumbers = [
-        18, 17, 16, 15, 14, 13, 12, 11,
-        21, 22, 23, 24, 25, 26, 27, 28,
-        38, 37, 36, 35, 34, 33, 32, 31,
-        41, 42, 43, 44, 45, 46, 47, 48
+        18, 17, 16, 15, 14, 13, 12, 11, // 右上
+        21, 22, 23, 24, 25, 26, 27, 28, // 左上
+        38, 37, 36, 35, 34, 33, 32, 31, // 左下
+        41, 42, 43, 44, 45, 46, 47, 48  // 右下
     ];
 
-    // 牙齒參數
-    const toothWidth = 20;
-    const toothHeight = 50;
-    const rootHeight = 30;
-    const gap = 5;
-    const startX = 50;
-    const upperY = 150;
-    const lowerY = 350;
+    // 牙齒類型和寬度
+    const toothTypes = [
+        'molar', 'molar', 'molar', 'premolar', 'premolar', 'canine', 'incisor', 'incisor', // 右上
+        'incisor', 'incisor', 'canine', 'premolar', 'premolar', 'molar', 'molar', 'molar', // 左上
+        'molar', 'molar', 'molar', 'premolar', 'premolar', 'canine', 'incisor', 'incisor', // 左下
+        'incisor', 'incisor', 'canine', 'premolar', 'premolar', 'molar', 'molar', 'molar'  // 右下
+    ];
+    const toothWidths = {
+        incisor: 10,
+        canine: 12,
+        premolar: 14,
+        molar: 18
+    };
+
+    // 佈局參數
+    const centerX = 400; // 畫布中心
+    const upperRadius = 150; // 上顎半徑
+    const lowerRadius = 150; // 下顎半徑
+    const upperY = 200; // 上顎中心 y
+    const lowerY = 400; // 下顎中心 y
+    const toothHeight = 30;
+    const rootHeight = 20;
 
     // 繪製牙齒
     try {
         for (let i = 0; i < 32; i++) {
             const toothNum = fdiNumbers[i];
+            const type = toothTypes[i];
+            const width = toothWidths[type];
             const isUpper = i < 16;
-            let x;
-            if (i < 8) x = startX + i * (toothWidth + gap);
-            else if (i < 16) x = startX + (i - 8) * (toothWidth + gap);
-            else if (i < 24) x = startX + (23 - i) * (toothWidth + gap);
-            else x = startX + (31 - i) * (toothWidth + gap);
+            const isRight = (i < 8) || (i >= 24); // 右上或右下
 
-            const y = isUpper ? upperY : lowerY;
-            const rootY = y + toothHeight;
+            // 計算角度（模擬弧形）
+            let angle;
+            if (i < 8) angle = -Math.PI / 4 + (i / 7) * (Math.PI / 2); // 右上
+            else if (i < 16) angle = Math.PI / 4 + ((i - 8) / 7) * (Math.PI / 2); // 左上
+            else if (i < 24) angle = Math.PI * 3 / 4 + ((23 - i) / 7) * (Math.PI / 2); // 左下
+            else angle = -Math.PI * 3 / 4 + ((31 - i) / 7) * (Math.PI / 2); // 右下
+
+            const radius = isUpper ? upperRadius : lowerRadius;
+            const centerY = isUpper ? upperY : lowerY;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            const rootY = isUpper ? y + toothHeight : y - toothHeight;
+
+            // 旋轉角度（使牙齒朝向中心）
+            const rotation = (angle * 180 / Math.PI) + (isUpper ? 0 : 180);
 
             // 檢查變數
-            if (isNaN(x) || isNaN(y) || isNaN(rootY) || isNaN(toothWidth) || isNaN(rootHeight)) {
+            if (isNaN(x) || isNaN(y) || isNaN(rootY)) {
                 console.error(`Invalid values for tooth ${toothNum}: x=${x}, y=${y}, rootY=${rootY}`);
                 continue;
             }
@@ -51,42 +76,60 @@ document.addEventListener('DOMContentLoaded', () => {
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.classList.add('tooth');
             group.dataset.index = i;
+            group.setAttribute('transform', `translate(${x}, ${y}) rotate(${rotation})`);
 
             // 點擊區域
             const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            hitArea.setAttribute('x', x - 2);
-            hitArea.setAttribute('y', y - 10);
-            hitArea.setAttribute('width', toothWidth + 4);
+            hitArea.setAttribute('x', -width / 2 - 2);
+            hitArea.setAttribute('y', isUpper ? -10 : -toothHeight - 10);
+            hitArea.setAttribute('width', width + 4);
             hitArea.setAttribute('height', toothHeight + rootHeight + 20);
             hitArea.classList.add('hit-area');
 
-            // 牙冠
-            const crown = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-            crown.setAttribute('x', x);
-            crown.setAttribute('y', y);
-            crown.setAttribute('width', toothWidth);
-            crown.setAttribute('height', toothHeight);
+            // 牙冠（使用 path 模擬圓角）
+            const crown = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const crownPath = `
+                M ${-width / 2},0
+                Q ${-width / 2},-10 ${-width / 4},-10
+                L ${-width / 4},${isUpper ? toothHeight : -toothHeight}
+                Q ${0},${isUpper ? toothHeight + 5 : -toothHeight - 5} ${width / 4},${isUpper ? toothHeight : -toothHeight}
+                L ${width / 4},-10
+                Q ${width / 2},-10 ${width / 2},0
+                Z
+            `;
+            crown.setAttribute('d', crownPath);
             crown.classList.add('tooth-crown');
 
-            // 牙根
-            const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            const x1 = x;
-            const y1 = rootY;
-            const x2 = x + toothWidth;
-            const y2 = rootY;
-            const x3 = x + (toothWidth * 4 / 5); // 取代 0.8，避免浮點問題
-            const y3 = rootY + rootHeight;
-            const x4 = x + (toothWidth * 1 / 5); // 取代 0.2
-            const y4 = rootY + rootHeight;
-            const points = `${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`;
-            console.log(`Tooth ${toothNum} points values: x1=${x1}, y1=${y1}, x2=${x2}, y2=${y2}, x3=${x3}, y3=${y3}, x4=${x4}, y4=${y4}`);
-            root.setAttribute('points', points);
+            // 牙根（單根或雙根）
+            const root = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            let rootPath;
+            if (type === 'molar' && i % 8 >= 3) { // 臼齒雙根（假設後臼齒）
+                rootPath = `
+                    M ${-width / 4},${isUpper ? toothHeight : -toothHeight}
+                    L ${-width / 3},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${-width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${0},${isUpper ? toothHeight : -toothHeight}
+                    L ${width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 3},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 4},${isUpper ? toothHeight : -toothHeight}
+                    Z
+                `;
+            } else { // 單根
+                rootPath = `
+                    M ${-width / 4},${isUpper ? toothHeight : -toothHeight}
+                    L ${-width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 4},${isUpper ? toothHeight : -toothHeight}
+                    Z
+                `;
+            }
+            root.setAttribute('d', rootPath);
             root.classList.add('tooth-root');
 
             // 編號
             const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            label.setAttribute('x', x + toothWidth / 2);
-            label.setAttribute('y', isUpper ? y - 10 : y + toothHeight + rootHeight + 20);
+            label.setAttribute('x', 0);
+            label.setAttribute('y', isUpper ? -15 : toothHeight + rootHeight + 15);
             label.setAttribute('text-anchor', 'middle');
             label.textContent = toothNum;
 
@@ -97,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             svg.appendChild(group);
             teeth.push(group);
 
-            console.log(`Tooth ${toothNum} created at x=${x}, y=${y}, points=${points}`);
+            console.log(`Tooth ${toothNum} created at x=${x}, y=${y}, type=${type}`);
         }
     } catch (error) {
         console.error('Error creating teeth:', error);
