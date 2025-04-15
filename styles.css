@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+}
+
+#dental-chart {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.tooth {
+    cursor: pointer;
+    transition: fill 0.2s;
+}
+
+.tooth-crown {
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 1;
+}
+
+.tooth-root {
+    fill: #f5f5d5;
+    stroke: #000;
+    stroke-width: 1;
+}
+
+.missing {
+    display: none;
+}
+
+.crown-gray {
+    fill: #ccc;
+}
+
+.implant-root {
+    fill: #aaa;
+    stroke-dasharray: 3,3;
+}
