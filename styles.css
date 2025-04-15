@@ -1,52 +1,133 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Script loaded, initializing dental chart...');
+    
+    const svg = document.getElementById('dental-chart');
+    if (!svg) {
+        console.error('SVG element not found!');
+        return;
+    }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-}
+    const teeth = [];
+    const states = ['normal', 'missing', 'crown', 'bridge', 'implant'];
+    const toothState = Array(32).fill('normal');
 
-h1 {
-    color: #333;
-}
+    // FDI編號
+    const fdiNumbers = [
+        18, 17, 16, 15, 14, 13, 12, 11, // 右上
+        21, 22, 23, 24, 25, 26, 27, 28, // 左上
+        38, 37, 36, 35, 34, 33, 32, 31, // 左下
+        41, 42, 43, 44, 45, 46, 47, 48  // 右下
+    ];
 
-#dental-chart {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-}
+    // 牙齒參數
+    const toothWidth = 20;
+    const toothHeight = 50;
+    const rootHeight = 30;
+    const gap = 5;
+    const startX = 50;
+    const upperY = 150;
+    const lowerY = 350;
 
-.tooth {
-    cursor: pointer;
-    transition: fill 0.2s;
-}
+    // 繪製牙齒
+    try {
+        for (let i = 0; i < 32; i++) {
+            const toothNum = fdiNumbers[i];
+            const isUpper = i < 16;
+            // 排列：右上(18-11) -> 左上(21-28) -> 左下(38-31) -> 右下(41-48)
+            let x;
+            if (i < 8) x = startX + i * (toothWidth + gap); // 右上
+            else if (i < 16) x = startX + (i - 8) * (toothWidth + gap); // 左上
+            else if (i < 24) x = startX + (23 - i) * (toothWidth + gap); // 左下
+            else x = startX + (31 - i) * (toothWidth + gap); // 右下
 
-.tooth-crown {
-    fill: #fff;
-    stroke: #000;
-    stroke-width: 1;
-}
+            const y = isUpper ? upperY : lowerY;
 
-.tooth-root {
-    fill: #f5f5d5;
-    stroke: #000;
-    stroke-width: 1;
-}
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.classList.add('tooth');
+            group.dataset.index = i;
 
-.missing {
-    display: none;
-}
+            // 點擊區域
+            const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            hitArea.setAttribute('x', x - 2);
+            hitArea.setAttribute('y', y - 10);
+            hitArea.setAttribute('width', toothWidth + 4);
+            hitArea.setAttribute('height', toothHeight + rootHeight + 20);
+            hitArea.classList.add('hit-area');
 
-.crown-gray {
-    fill: #ccc;
-}
+            // 牙冠
+            const crown = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            crown.setAttribute('x', x);
+            crown.setAttribute('y', y);
+            crown.setAttribute('width', toothWidth);
+            crown.setAttribute('height', toothHeight);
+            crown.classList.add('tooth-crown');
 
-.implant-root {
-    fill: #aaa;
-    stroke-dasharray: 3,3;
-}
+            // 牙根
+            const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const rootY = y + toothHeight;
+            root.setAttribute('points', `
+                ${x},${rootY}
+                ${x + toothWidth},${rootY}
+                ${x + toothWidth * 0.8},${rootY + rootHeight}
+                ${x + toothWidth * 0.2},${rootY + rootHeight}
+            `);
+            root.classList.add('tooth-root');
+
+            // 編號
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', x + toothWidth / 2);
+            label.setAttribute('y', isUpper ? y - 10 : y + toothHeight + rootHeight + 20);
+            label.setAttribute('text-anchor', 'middle');
+            label.textContent = toothNum;
+
+            group.appendChild(hitArea);
+            group.appendChild(crown);
+            group.appendChild(root);
+            group.appendChild(label);
+            svg.appendChild(group);
+            teeth.push(group);
+
+            console.log(`Tooth ${toothNum} created at x=${x}, y=${y}`);
+        }
+    } catch (error) {
+        console.error('Error creating teeth:', error);
+    }
+
+    // 點擊事件
+    teeth.forEach((tooth, index) => {
+        tooth.addEventListener('click', () => {
+            console.log(`Tooth ${fdiNumbers[index]} clicked, current state: ${toothState[index]}`);
+            let currentStateIndex = states.indexOf(toothState[index]);
+            currentStateIndex = (currentStateIndex + 1) % states.length;
+            toothState[index] = states[currentStateIndex];
+
+            const crown = tooth.querySelector('.tooth-crown');
+            const root = tooth.querySelector('.tooth-root');
+
+            // 重置樣式
+            tooth.classList.remove('missing');
+            crown.classList.remove('crown-gray');
+            root.classList.remove('crown-gray', 'implant-root');
+            root.style.display = 'block';
+
+            // 應用新狀態
+            switch (toothState[index]) {
+                case 'missing':
+                    tooth.classList.add('missing');
+                    break;
+                case 'crown':
+                    crown.classList.add('crown-gray');
+                    break;
+                case 'bridge':
+                    crown.classList.add('crown-gray');
+                    root.style.display = 'none';
+                    break;
+                case 'implant':
+                    crown.classList.add('crown-gray');
+                    root.classList.add('implant-root');
+                    break;
+            }
+            console.log(`Tooth ${fdiNumbers[index]} changed to state: ${toothState[index]}`);
+        });
+    });
+});
