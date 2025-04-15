@@ -43,8 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const rootY = y + toothHeight;
 
             // 檢查變數
-            if (isNaN(x) || isNaN(rootY) || isNaN(toothWidth) || isNaN(rootHeight)) {
-                console.error(`Invalid values for tooth ${toothNum}: x=${x}, rootY=${rootY}`);
+            if (isNaN(x) || isNaN(y) || isNaN(rootY) || isNaN(toothWidth) || isNaN(rootHeight)) {
+                console.error(`Invalid values for tooth ${toothNum}: x=${x}, y=${y}, rootY=${rootY}`);
                 continue;
             }
 
@@ -68,14 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
             crown.setAttribute('height', toothHeight);
             crown.classList.add('tooth-crown');
 
-            // 牙根（簡化計算）
+            // 牙根（極簡化 points）
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            const points = [
-                x, rootY,
-                x + toothWidth, rootY,
-                x + toothWidth * 0.8, rootY + rootHeight,
-                x + toothWidth * 0.2, rootY + rootHeight
-            ].join(',');
+            const x1 = x;
+            const y1 = rootY;
+            const x2 = x + toothWidth;
+            const y2 = rootY;
+            const x3 = x + toothWidth * 0.8;
+            const y3 = rootY + rootHeight;
+            const x4 = x + toothWidth * 0.2;
+            const y4 = rootY + rootHeight;
+            const points = `${x1},${y1} ${x2},${y2} ${x3},${y3} ${x4},${y4}`;
             root.setAttribute('points', points);
             root.classList.add('tooth-root');
 
