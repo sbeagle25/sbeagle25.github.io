@@ -28,17 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const upperY = 150;
     const lowerY = 350;
 
-    // 生成牙根points的函數
-    function generateRootPoints(x, y, width, rootH) {
-        const points = [
-            [x, y],
-            [x + width, y],
-            [x + width * 0.8, y + rootH],
-            [x + width * 0.2, y + rootH]
-        ];
-        return points.map(p => p.join(',')).join(' ');
-    }
-
     // 繪製牙齒
     try {
         for (let i = 0; i < 32; i++) {
@@ -51,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else x = startX + (31 - i) * (toothWidth + gap); // 右下
 
             const y = isUpper ? upperY : lowerY;
+            const rootY = y + toothHeight;
 
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.classList.add('tooth');
@@ -72,10 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
             crown.setAttribute('height', toothHeight);
             crown.classList.add('tooth-crown');
 
-            // 牙根
+            // 牙根（簡化座標生成）
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            const rootY = y + toothHeight;
-            const points = generateRootPoints(x, rootY, toothWidth, rootHeight);
+            const p1 = [x, rootY];
+            const p2 = [x + toothWidth, rootY];
+            const p3 = [x + toothWidth * 0.8, rootY + rootHeight];
+            const p4 = [x + toothWidth * 0.2, rootY + rootHeight];
+            const points = `${p1.join(',')} ${p2.join(',')} ${p3.join(',')} ${p4.join(',')}`;
             root.setAttribute('points', points);
             root.classList.add('tooth-root');
 
