@@ -27,20 +27,20 @@ document.addEventListener('DOMContentLoaded', () => {
         'incisor', 'incisor', 'canine', 'premolar', 'premolar', 'molar', 'molar', 'molar'  // 右下
     ];
     const toothWidths = {
-        incisor: 10,
-        canine: 12,
-        premolar: 14,
-        molar: 18
+        incisor: 8,
+        canine: 10,
+        premolar: 12,
+        molar: 16
     };
 
     // 佈局參數
     const centerX = 400; // 畫布中心
-    const upperRadius = 150; // 上顎半徑
-    const lowerRadius = 150; // 下顎半徑
+    const upperRadius = 120; // 上顎半徑
+    const lowerRadius = 120; // 下顎半徑
     const upperY = 200; // 上顎中心 y
     const lowerY = 400; // 下顎中心 y
-    const toothHeight = 30;
-    const rootHeight = 20;
+    const toothHeight = 25;
+    const rootHeight = 15;
 
     // 繪製牙齒
     try {
@@ -49,27 +49,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = toothTypes[i];
             const width = toothWidths[type];
             const isUpper = i < 16;
-            const isRight = (i < 8) || (i >= 24); // 右上或右下
+            const isRight = (i < 8) || (i >= 24);
 
-            // 計算角度（模擬弧形）
+            // 計算角度（半圓形分佈）
             let angle;
-            if (i < 8) angle = -Math.PI / 4 + (i / 7) * (Math.PI / 2); // 右上
-            else if (i < 16) angle = Math.PI / 4 + ((i - 8) / 7) * (Math.PI / 2); // 左上
-            else if (i < 24) angle = Math.PI * 3 / 4 + ((23 - i) / 7) * (Math.PI / 2); // 左下
-            else angle = -Math.PI * 3 / 4 + ((31 - i) / 7) * (Math.PI / 2); // 右下
+            if (i < 8) angle = -Math.PI / 3 + (i / 7) * (Math.PI / 1.5); // 右上：-π/3 到 π/6
+            else if (i < 16) angle = Math.PI / 6 + ((i - 8) / 7) * (Math.PI / 1.5); // 左上：π/6 到 π/2
+            else if (i < 24) angle = Math.PI / 2 + ((23 - i) / 7) * (Math.PI / 1.5); // 左下：π/2 到 5π/6
+            else angle = -Math.PI * 5 / 6 + ((31 - i) / 7) * (Math.PI / 1.5); // 右下：-5π/6 到 -π/3
 
             const radius = isUpper ? upperRadius : lowerRadius;
             const centerY = isUpper ? upperY : lowerY;
             const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            const rootY = isUpper ? y + toothHeight : y - toothHeight;
+            const y = centerY + (isUpper ? -radius : radius) * Math.sin(angle);
+            const rootY = isUpper ? toothHeight : -toothHeight;
 
-            // 旋轉角度（使牙齒朝向中心）
+            // 旋轉角度（朝向中心）
             const rotation = (angle * 180 / Math.PI) + (isUpper ? 0 : 180);
 
             // 檢查變數
-            if (isNaN(x) || isNaN(y) || isNaN(rootY)) {
-                console.error(`Invalid values for tooth ${toothNum}: x=${x}, y=${y}, rootY=${rootY}`);
+            if (isNaN(x) || isNaN(y)) {
+                console.error(`Invalid values for tooth ${toothNum}: x=${x}, y=${y}`);
                 continue;
             }
 
@@ -86,40 +86,40 @@ document.addEventListener('DOMContentLoaded', () => {
             hitArea.setAttribute('height', toothHeight + rootHeight + 20);
             hitArea.classList.add('hit-area');
 
-            // 牙冠（使用 path 模擬圓角）
+            // 牙冠（更圓潤）
             const crown = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             const crownPath = `
                 M ${-width / 2},0
-                Q ${-width / 2},-10 ${-width / 4},-10
-                L ${-width / 4},${isUpper ? toothHeight : -toothHeight}
-                Q ${0},${isUpper ? toothHeight + 5 : -toothHeight - 5} ${width / 4},${isUpper ? toothHeight : -toothHeight}
-                L ${width / 4},-10
-                Q ${width / 2},-10 ${width / 2},0
+                Q ${-width / 2},-5 ${-width / 3},-5
+                L ${-width / 3},${isUpper ? toothHeight : -toothHeight}
+                Q ${0},${isUpper ? toothHeight + 3 : -toothHeight - 3} ${width / 3},${isUpper ? toothHeight : -toothHeight}
+                L ${width / 3},-5
+                Q ${width / 2},-5 ${width / 2},0
                 Z
             `;
             crown.setAttribute('d', crownPath);
             crown.classList.add('tooth-crown');
 
-            // 牙根（單根或雙根）
+            // 牙根（更細長）
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             let rootPath;
-            if (type === 'molar' && i % 8 >= 3) { // 臼齒雙根（假設後臼齒）
+            if (type === 'molar' && i % 8 >= 3) { // 臼齒雙根
                 rootPath = `
-                    M ${-width / 4},${isUpper ? toothHeight : -toothHeight}
-                    L ${-width / 3},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
-                    L ${-width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    M ${-width / 3},${isUpper ? toothHeight : -toothHeight}
+                    L ${-width / 4},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${-width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
                     L ${0},${isUpper ? toothHeight : -toothHeight}
-                    L ${width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
-                    L ${width / 3},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
-                    L ${width / 4},${isUpper ? toothHeight : -toothHeight}
+                    L ${width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 4},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 3},${isUpper ? toothHeight : -toothHeight}
                     Z
                 `;
             } else { // 單根
                 rootPath = `
-                    M ${-width / 4},${isUpper ? toothHeight : -toothHeight}
-                    L ${-width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
-                    L ${width / 8},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
-                    L ${width / 4},${isUpper ? toothHeight : -toothHeight}
+                    M ${-width / 3},${isUpper ? toothHeight : -toothHeight}
+                    L ${-width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 6},${isUpper ? toothHeight + rootHeight : -toothHeight - rootHeight}
+                    L ${width / 3},${isUpper ? toothHeight : -toothHeight}
                     Z
                 `;
             }
