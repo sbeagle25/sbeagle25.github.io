@@ -1,70 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>牙齒圖表示範</title>
-  <style>
-    svg {
-      width: 100%;
-      max-width: 600px;
-    }
-    .tooth {
-      cursor: pointer;
-      fill: white;
-      stroke: black;
-      stroke-width: 1;
-    }
-    .prosthetic {
-      fill: gray;
-    }
-    .missing {
-      display: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dental Chart</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h2>上排牙齒圖表示範</h2>
-  <svg viewBox="0 0 600 100">
-    <!-- 8 顆牙齒（右到左：18 ~ 11） -->
-    <g id="tooth-18" class="tooth" onclick="cycleToothState(this)" transform="translate(0,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-17" class="tooth" onclick="cycleToothState(this)" transform="translate(60,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-16" class="tooth" onclick="cycleToothState(this)" transform="translate(120,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-15" class="tooth" onclick="cycleToothState(this)" transform="translate(180,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-14" class="tooth" onclick="cycleToothState(this)" transform="translate(240,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-13" class="tooth" onclick="cycleToothState(this)" transform="translate(300,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-12" class="tooth" onclick="cycleToothState(this)" transform="translate(360,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-    <g id="tooth-11" class="tooth" onclick="cycleToothState(this)" transform="translate(420,0)">
-      <rect x="0" y="10" width="50" height="80" />
-    </g>
-  </svg>
-
-  <script>
-    function cycleToothState(el) {
-      if (el.classList.contains('missing')) {
-        el.classList.remove('missing');
-        el.classList.remove('prosthetic');
-      } else if (el.classList.contains('prosthetic')) {
-        el.classList.add('missing');
-        el.classList.remove('prosthetic');
-      } else {
-        el.classList.add('prosthetic');
-      }
-    }
-  </script>
+    <div class="container">
+        <h1>Interactive Dental Chart</h1>
+        <svg id="dental-chart" width="100%" height="600" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
