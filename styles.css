@@ -42,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const y = isUpper ? upperY : lowerY;
             const rootY = y + toothHeight;
 
+            // 檢查變數
+            if (isNaN(x) || isNaN(rootY) || isNaN(toothWidth) || isNaN(rootHeight)) {
+                console.error(`Invalid values for tooth ${toothNum}: x=${x}, rootY=${rootY}`);
+                continue;
+            }
+
             const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             group.classList.add('tooth');
             group.dataset.index = i;
@@ -62,13 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
             crown.setAttribute('height', toothHeight);
             crown.classList.add('tooth-crown');
 
-            // 牙根（簡化座標生成）
+            // 牙根（簡化計算）
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-            const p1 = [x, rootY];
-            const p2 = [x + toothWidth, rootY];
-            const p3 = [x + toothWidth * 0.8, rootY + rootHeight];
-            const p4 = [x + toothWidth * 0.2, rootY + rootHeight];
-            const points = `${p1.join(',')} ${p2.join(',')} ${p3.join(',')} ${p4.join(',')}`;
+            const points = [
+                x, rootY,
+                x + toothWidth, rootY,
+                x + toothWidth * 0.8, rootY + rootHeight,
+                x + toothWidth * 0.2, rootY + rootHeight
+            ].join(',');
             root.setAttribute('points', points);
             root.classList.add('tooth-root');
 
