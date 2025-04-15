@@ -29,13 +29,13 @@ h1 {
 .tooth-crown {
     fill: #fff;
     stroke: #000;
-    stroke-width: 1;
+    stroke-width: 0.5;
 }
 
 .tooth-root {
     fill: #f5f5d5;
     stroke: #000;
-    stroke-width: 1;
+    stroke-width: 0.5;
 }
 
 .missing {
@@ -49,9 +49,14 @@ h1 {
 
 .implant-root {
     fill: #aaa;
-    stroke-dasharray: 3,3;
+    stroke-dasharray: 2,2;
 }
 
 .hit-area {
     fill: transparent;
+}
+
+text {
+    font-size: 12px;
+    fill: #333;
 }
