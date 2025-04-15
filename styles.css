@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Script loaded, initializing dental chart...');
-    
+
     const svg = document.getElementById('dental-chart');
     if (!svg) {
         console.error('SVG element not found!');
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < 32; i++) {
             const toothNum = fdiNumbers[i];
             const isUpper = i < 16;
-            // 排列：右上(18-11) -> 左上(21-28) -> 左下(38-31) -> 右下(41-48)
             let x;
             if (i < 8) x = startX + i * (toothWidth + gap); // 右上
             else if (i < 16) x = startX + (i - 8) * (toothWidth + gap); // 左上
@@ -62,15 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
             crown.setAttribute('height', toothHeight);
             crown.classList.add('tooth-crown');
 
-            // 牙根
+            // 牙根（修復：使用單行字符串）
             const root = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             const rootY = y + toothHeight;
-            root.setAttribute('points', `
-                ${x},${rootY}
-                ${x + toothWidth},${rootY}
-                ${x + toothWidth * 0.8},${rootY + rootHeight}
-                ${x + toothWidth * 0.2},${rootY + rootHeight}
-            `);
+            root.setAttribute('points', `${x},${rootY} ${x + toothWidth},${rootY} ${x + toothWidth * 0.8},${rootY + rootHeight} ${x + toothWidth * 0.2},${rootY + rootHeight}`);
             root.classList.add('tooth-root');
 
             // 編號
@@ -94,40 +88,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 點擊事件
-    teeth.forEach((tooth, index) => {
-        tooth.addEventListener('click', () => {
-            console.log(`Tooth ${fdiNumbers[index]} clicked, current state: ${toothState[index]}`);
-            let currentStateIndex = states.indexOf(toothState[index]);
-            currentStateIndex = (currentStateIndex + 1) % states.length;
-            toothState[index] = states[currentStateIndex];
+    try {
+        teeth.forEach((tooth, index) => {
+            tooth.addEventListener('click', () => {
+                console.log(`Tooth ${fdiNumbers[index]} clicked, current state: ${toothState[index]}`);
+                let currentStateIndex = states.indexOf(toothState[index]);
+                currentStateIndex = (currentStateIndex + 1) % states.length;
+                toothState[index] = states[currentStateIndex];
 
-            const crown = tooth.querySelector('.tooth-crown');
-            const root = tooth.querySelector('.tooth-root');
+                const crown = tooth.querySelector('.tooth-crown');
+                const root = tooth.querySelector('.tooth-root');
 
-            // 重置樣式
-            tooth.classList.remove('missing');
-            crown.classList.remove('crown-gray');
-            root.classList.remove('crown-gray', 'implant-root');
-            root.style.display = 'block';
+                // 重置樣式
+                tooth.classList.remove('missing');
+                crown.classList.remove('crown-gray');
+                root.classList.remove('crown-gray', 'implant-root');
+                root.style.display = 'block';
 
-            // 應用新狀態
-            switch (toothState[index]) {
-                case 'missing':
-                    tooth.classList.add('missing');
-                    break;
-                case 'crown':
-                    crown.classList.add('crown-gray');
-                    break;
-                case 'bridge':
-                    crown.classList.add('crown-gray');
-                    root.style.display = 'none';
-                    break;
-                case 'implant':
-                    crown.classList.add('crown-gray');
-                    root.classList.add('implant-root');
-                    break;
-            }
-            console.log(`Tooth ${fdiNumbers[index]} changed to state: ${toothState[index]}`);
+                // 應用新狀態
+                switch (toothState[index]) {
+                    case 'missing':
+                        tooth.classList.add('missing');
+                        break;
+                    case 'crown':
+                        crown.classList.add('crown-gray');
+                        break;
+                    case 'bridge':
+                        crown.classList.add('crown-gray');
+                        root.style.display = 'none';
+                        break;
+                    case 'implant':
+                        crown.classList.add('crown-gray');
+                        root.classList.add('implant-root');
+                        break;
+                }
+                console.log(`Tooth ${fdiNumbers[index]} changed to state: ${toothState[index]}`);
+            });
         });
-    });
+    } catch (error) {
+        console.error('Error setting up click events:', error);
+    }
 });
