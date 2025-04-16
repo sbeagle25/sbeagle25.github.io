@@ -8,7 +8,7 @@
       margin: 0;
       background: #f0f0f0;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       height: 100vh;
     }
@@ -18,6 +18,7 @@
       background-size: contain;
       width: 917px;
       height: 308px;
+      margin-top: 20px;
     }
     .tooth {
       position: absolute;
@@ -30,12 +31,26 @@
     .tooth.implant { background-color: rgba(0, 128, 255, 0.4); }
     .tooth.missing { background-color: rgba(0, 0, 0, 0.4); }
     .tooth.prosthetic { background-color: rgba(255, 215, 0, 0.6); }
+    #implant-18 {
+      position: absolute;
+      top: 200px;
+      left: 830px;
+      width: 50px;
+      display: none;
+      cursor: move;
+    }
+    .controls {
+      margin-top: 10px;
+      font-family: sans-serif;
+    }
   </style>
 </head>
 <body>
+<div class="controls">
+  拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。
+</div>
 <div class="chart" id="chart">
-  <img id="implant-18" src="18b.png"
-       style="position: absolute; top: 30px; left: 30px; width: 50px; display: none; pointer-events: none;" />
+  <img id="implant-18" src="18b.png" />
 </div>
 
 <script>
@@ -69,7 +84,7 @@ for (const t of toothData) {
     div.dataset.state = next;
     div.className = 'tooth ' + (next === 'normal' ? '' : next);
 
-    // 額外處理第18顆牙齒的植牙圖層
+    // 顯示或隱藏植體圖層
     if (t.id === 18) {
       const implantImage = document.getElementById('implant-18');
       if (next === 'implant') {
@@ -82,6 +97,27 @@ for (const t of toothData) {
 
   chart.appendChild(div);
 }
+
+// 拖曳功能 for 植牙圖
+const implantImg = document.getElementById('implant-18');
+let isDragging = false, offsetX = 0, offsetY = 0;
+
+implantImg.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  offsetX = e.offsetX;
+  offsetY = e.offsetY;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const chartRect = chart.getBoundingClientRect();
+  implantImg.style.left = (e.clientX - chartRect.left - offsetX) + 'px';
+  implantImg.style.top = (e.clientY - chartRect.top - offsetY) + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
 </script>
 </body>
 </html>
