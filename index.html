@@ -33,7 +33,10 @@
   </style>
 </head>
 <body>
-<div class="chart" id="chart"></div>
+<div class="chart" id="chart">
+  <img id="implant-18" src="https://www.periodontalchart-online.com/img/implants/1/18b.png"
+       style="position: absolute; top: 190px; left: 35px; width: 50px; display: none; pointer-events: none;" />
+</div>
 
 <script>
 const chart = document.getElementById('chart');
@@ -65,6 +68,16 @@ for (const t of toothData) {
     const next = states[(states.indexOf(current) + 1) % states.length];
     div.dataset.state = next;
     div.className = 'tooth ' + (next === 'normal' ? '' : next);
+
+    // 額外處理第18顆牙齒的植牙圖層
+    if (t.id === 18) {
+      const implantImage = document.getElementById('implant-18');
+      if (next === 'implant') {
+        implantImage.style.display = 'block';
+      } else {
+        implantImage.style.display = 'none';
+      }
+    }
   });
 
   chart.appendChild(div);
