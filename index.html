@@ -56,13 +56,19 @@
 </head>
 <body>
 <div class="controls">
-  拖曳植體圖示到正確位置後，可列出並下載座標。<br>
+  拖曳圖示到正確位置後，可列出並下載座標。<br>
   <button onclick="resetTeeth()">全部還原</button>
   <button onclick="showPositions()">列出目前座標</button>
   <button onclick="downloadPositions()">下載座標</button>
-  <button onclick="enterEditMode()">進入圖層調整模式</button>
+  <select id="layerSelector" onchange="filterLayer()">
+    <option value="all">顯示全部圖層</option>
+    <option value="implant">僅植牙</option>
+    <option value="missing">僅缺牙</option>
+    <option value="bridge">僅牙橋</option>
+    <option value="crown">僅牙冠</option>
+  </select>
 </div>
-<div class="chart" id="chart"></div>
+<div class="chart" id="chart" tabindex="0"></div>
 <pre id="positionOutput"></pre>
 
 <script>
@@ -72,6 +78,7 @@ const toothData = [];
 const topY = 40;
 const bottomY = 200;
 const spacing = 55;
+const gridSize = 5;
 
 for (let i = 0; i < 32; i++) {
   const number = i < 16 ? 18 - i : 31 + (i - 15);
@@ -90,29 +97,20 @@ for (const t of toothData) {
   div.dataset.state = 'normal';
   div.title = `Tooth ${t.id}`;
 
-  const implantImg = document.createElement('img');
-  implantImg.id = `implant-${t.id}`;
-  implantImg.src = `implant/${t.id}i.png`;
-  implantImg.style.top = t.top + 'px';
-  implantImg.style.left = t.left + 'px';
+  const createImg = (type, folder, suffix) => {
+    const img = document.createElement('img');
+    img.id = `${type}-${t.id}`;
+    img.dataset.layer = type;
+    img.src = `${folder}/${t.id}${suffix}.png`;
+    img.style.top = t.top + 'px';
+    img.style.left = t.left + 'px';
+    return img;
+  };
 
-  const missingImg = document.createElement('img');
-  missingImg.id = `missing-${t.id}`;
-  missingImg.src = `missing/${t.id}m.png`;
-  missingImg.style.top = t.top + 'px';
-  missingImg.style.left = t.left + 'px';
-
-  const bridgeImg = document.createElement('img');
-  bridgeImg.id = `bridge-${t.id}`;
-  bridgeImg.src = `bridge/${t.id}b.png`;
-  bridgeImg.style.top = t.top + 'px';
-  bridgeImg.style.left = t.left + 'px';
-
-  const crownImg = document.createElement('img');
-  crownImg.id = `crown-${t.id}`;
-  crownImg.src = `crown/${t.id}c.png`;
-  crownImg.style.top = t.top + 'px';
-  crownImg.style.left = t.left + 'px';
+  const implantImg = createImg('implant', 'implant', 'i');
+  const missingImg = createImg('missing', 'missing', 'm');
+  const bridgeImg = createImg('bridge', 'bridge', 'b');
+  const crownImg = createImg('crown', 'crown', 'c');
 
   implantImgs[t.id] = implantImg;
   missingImgs[t.id] = missingImg;
@@ -169,12 +167,30 @@ chart.addEventListener('mousedown', (e) => {
 chart.addEventListener('mousemove', (e) => {
   if (!draggingImg) return;
   const rect = chart.getBoundingClientRect();
-  draggingImg.style.left = (e.clientX - rect.left - offsetX) + 'px';
-  draggingImg.style.top = (e.clientY - rect.top - offsetY) + 'px';
+  let newLeft = e.clientX - rect.left - offsetX;
+  let newTop = e.clientY - rect.top - offsetY;
+  newLeft = Math.round(newLeft / gridSize) * gridSize;
+  newTop = Math.round(newTop / gridSize) * gridSize;
+  draggingImg.style.left = newLeft + 'px';
+  draggingImg.style.top = newTop + 'px';
 });
 
 chart.addEventListener('mouseup', () => {
   draggingImg = null;
+});
+
+chart.addEventListener('keydown', (e) => {
+  if (!document.activeElement.classList.contains('chart')) return;
+  const activeImgs = [...document.querySelectorAll('#chart img')].filter(img => img.style.display === 'block');
+  const moveBy = e.shiftKey ? 5 : 1;
+  for (const img of activeImgs) {
+    const currentLeft = parseInt(img.style.left || 0);
+    const currentTop = parseInt(img.style.top || 0);
+    if (e.key === 'ArrowLeft') img.style.left = (currentLeft - moveBy) + 'px';
+    if (e.key === 'ArrowRight') img.style.left = (currentLeft + moveBy) + 'px';
+    if (e.key === 'ArrowUp') img.style.top = (currentTop - moveBy) + 'px';
+    if (e.key === 'ArrowDown') img.style.top = (currentTop + moveBy) + 'px';
+  }
 });
 
 function showPositions() {
@@ -197,10 +213,17 @@ function downloadPositions() {
   link.click();
 }
 
-function enterEditMode() {
+function filterLayer() {
+  const selected = document.getElementById('layerSelector').value;
   document.querySelectorAll('#chart img').forEach(img => {
-    img.style.display = 'block';
-    img.style.pointerEvents = 'auto';
+    const layer = img.dataset.layer;
+    if (selected === 'all' || selected === layer) {
+      img.style.pointerEvents = 'auto';
+      img.style.opacity = '1';
+    } else {
+      img.style.pointerEvents = 'none';
+      img.style.opacity = '0.3';
+    }
   });
 }
 </script>
