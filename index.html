@@ -32,7 +32,8 @@
       position: absolute;
       display: none;
       width: 40px;
-      pointer-events: none;
+      pointer-events: auto;
+      user-select: none;
     }
     .controls {
       margin-top: 10px;
@@ -55,10 +56,11 @@
 </head>
 <body>
 <div class="controls">
-  拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。<br>
+  拖曳植體圖示到正確位置後，可列出並下載座標。<br>
   <button onclick="resetTeeth()">全部還原</button>
   <button onclick="showPositions()">列出目前座標</button>
   <button onclick="downloadPositions()">下載座標</button>
+  <button onclick="enterEditMode()">進入圖層調整模式</button>
 </div>
 <div class="chart" id="chart"></div>
 <pre id="positionOutput"></pre>
@@ -158,8 +160,9 @@ let draggingImg = null, offsetX = 0, offsetY = 0;
 chart.addEventListener('mousedown', (e) => {
   if (e.target.tagName === 'IMG') {
     draggingImg = e.target;
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
+    const rect = draggingImg.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
   }
 });
 
@@ -192,6 +195,13 @@ function downloadPositions() {
   link.href = URL.createObjectURL(blob);
   link.download = 'tooth_positions.txt';
   link.click();
+}
+
+function enterEditMode() {
+  document.querySelectorAll('#chart img').forEach(img => {
+    img.style.display = 'block';
+    img.style.pointerEvents = 'auto';
+  });
 }
 </script>
 </body>
