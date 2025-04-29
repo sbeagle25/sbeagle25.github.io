@@ -41,20 +41,32 @@
     .controls button {
       margin-left: 10px;
     }
+    #positionOutput {
+      margin-top: 10px;
+      white-space: pre;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      width: 90%;
+      max-width: 1000px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
 <div class="controls">
-  拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。
+  拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。<br>
   <button onclick="resetTeeth()">全部還原</button>
+  <button onclick="showPositions()">列出目前座標</button>
+  <button onclick="downloadPositions()">下載座標</button>
 </div>
 <div class="chart" id="chart"></div>
+<pre id="positionOutput"></pre>
 
 <script>
 const chart = document.getElementById('chart');
 const toothData = [];
 
-// 定義每顆牙齒的位置（前 16 顆上排，後 16 顆下排）
 const topY = 40;
 const bottomY = 200;
 const spacing = 55;
@@ -141,7 +153,6 @@ function resetTeeth() {
   }
 }
 
-// 拖曳功能 for 牙齒圖片
 let draggingImg = null, offsetX = 0, offsetY = 0;
 
 chart.addEventListener('mousedown', (e) => {
@@ -162,6 +173,26 @@ chart.addEventListener('mousemove', (e) => {
 chart.addEventListener('mouseup', () => {
   draggingImg = null;
 });
+
+function showPositions() {
+  let output = '';
+  document.querySelectorAll('#chart img').forEach(img => {
+    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+  });
+  document.getElementById('positionOutput').textContent = output;
+}
+
+function downloadPositions() {
+  let output = '';
+  document.querySelectorAll('#chart img').forEach(img => {
+    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+  });
+  const blob = new Blob([output], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'tooth_positions.txt';
+  link.click();
+}
 </script>
 </body>
 </html>
