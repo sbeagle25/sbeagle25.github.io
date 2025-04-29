@@ -28,16 +28,11 @@
       background-color: rgba(255, 255, 0, 0.0);
       transition: background-color 0.3s;
     }
-    .tooth.implant { background-color: rgba(0, 128, 255, 0.4); }
-    .tooth.missing { background-color: rgba(0, 0, 0, 0.4); }
-    .tooth.prosthetic { background-color: rgba(255, 215, 0, 0.6); }
-    #implant-18 {
+    #chart img {
       position: absolute;
-      top: -5px;
-      left: 54px;
-      width: 50px;
       display: none;
-      cursor: move;
+      width: 40px;
+      pointer-events: none;
     }
     .controls {
       margin-top: 10px;
@@ -49,9 +44,7 @@
 <div class="controls">
   拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。
 </div>
-<div class="chart" id="chart">
-  <img id="implant-18" src="18.png" />
-</div>
+<div class="chart" id="chart"></div>
 
 <script>
 const chart = document.getElementById('chart');
@@ -63,12 +56,13 @@ const bottomY = 200;
 const spacing = 55;
 
 for (let i = 0; i < 32; i++) {
+  const number = i < 16 ? 18 - i : 31 + (i - 15);
   const left = 20 + (i % 16) * spacing;
   const top = i < 16 ? topY : bottomY;
-  toothData.push({ id: i + 1, top, left });
+  toothData.push({ id: number, top, left });
 }
 
-// 插入牙齒區塊
+// 插入牙齒區塊與狀態圖片
 for (const t of toothData) {
   const div = document.createElement('div');
   div.className = 'tooth';
@@ -77,46 +71,66 @@ for (const t of toothData) {
   div.dataset.state = 'normal';
   div.title = `Tooth ${t.id}`;
 
+  const implantImg = document.createElement('img');
+  implantImg.id = `implant-${t.id}`;
+  implantImg.src = `implant/${t.id}i.png`;
+  implantImg.style.top = t.top + 'px';
+  implantImg.style.left = t.left + 'px';
+
+  const missingImg = document.createElement('img');
+  missingImg.id = `missing-${t.id}`;
+  missingImg.src = `missing/${t.id}m.png`;
+  missingImg.style.top = t.top + 'px';
+  missingImg.style.left = t.left + 'px';
+
+  const bridgeImg = document.createElement('img');
+  bridgeImg.id = `bridge-${t.id}`;
+  bridgeImg.src = `bridge/${t.id}b.png`;
+  bridgeImg.style.top = t.top + 'px';
+  bridgeImg.style.left = t.left + 'px';
+
   div.addEventListener('click', () => {
     const states = ['normal', 'implant', 'prosthetic', 'missing'];
     const current = div.dataset.state;
     const next = states[(states.indexOf(current) + 1) % states.length];
     div.dataset.state = next;
-    div.className = 'tooth ' + (next === 'normal' ? '' : next);
+    div.className = 'tooth';
 
-    // 顯示或隱藏植體圖層
-    if (t.id === 18) {
-      const implantImage = document.getElementById('implant-18');
-      if (next === 'implant') {
-        implantImage.style.display = 'block';
-      } else {
-        implantImage.style.display = 'none';
-      }
-    }
+    implantImg.style.display = 'none';
+    missingImg.style.display = 'none';
+    bridgeImg.style.display = 'none';
+
+    if (next === 'implant') implantImg.style.display = 'block';
+    else if (next === 'missing') missingImg.style.display = 'block';
+    else if (next === 'prosthetic') bridgeImg.style.display = 'block';
   });
 
   chart.appendChild(div);
+  chart.appendChild(implantImg);
+  chart.appendChild(missingImg);
+  chart.appendChild(bridgeImg);
 }
 
-// 拖曳功能 for 植牙圖
-const implantImg = document.getElementById('implant-18');
-let isDragging = false, offsetX = 0, offsetY = 0;
+// 拖曳功能 for 植牙圖（僅示範第18顆，可以自行套用其他牙齒）
+let draggingImg = null, offsetX = 0, offsetY = 0;
 
-implantImg.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  offsetX = e.offsetX;
-  offsetY = e.offsetY;
+chart.addEventListener('mousedown', (e) => {
+  if (e.target.tagName === 'IMG') {
+    draggingImg = e.target;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+  }
 });
 
-document.addEventListener('mousemove', (e) => {
-  if (!isDragging) return;
-  const chartRect = chart.getBoundingClientRect();
-  implantImg.style.left = (e.clientX - chartRect.left - offsetX) + 'px';
-  implantImg.style.top = (e.clientY - chartRect.top - offsetY) + 'px';
+chart.addEventListener('mousemove', (e) => {
+  if (!draggingImg) return;
+  const rect = chart.getBoundingClientRect();
+  draggingImg.style.left = (e.clientX - rect.left - offsetX) + 'px';
+  draggingImg.style.top = (e.clientY - rect.top - offsetY) + 'px';
 });
 
-document.addEventListener('mouseup', () => {
-  isDragging = false;
+chart.addEventListener('mouseup', () => {
+  draggingImg = null;
 });
 </script>
 </body>
