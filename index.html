@@ -38,11 +38,15 @@
       margin-top: 10px;
       font-family: sans-serif;
     }
+    .controls button {
+      margin-left: 10px;
+    }
   </style>
 </head>
 <body>
 <div class="controls">
   拖曳植體圖示到正確位置後，可右鍵 → 檢查 → 複製 top/left 數值貼回程式碼中。
+  <button onclick="resetTeeth()">全部還原</button>
 </div>
 <div class="chart" id="chart"></div>
 
@@ -62,7 +66,8 @@ for (let i = 0; i < 32; i++) {
   toothData.push({ id: number, top, left });
 }
 
-// 插入牙齒區塊與狀態圖片
+const implantImgs = {}, missingImgs = {}, bridgeImgs = {}, crownImgs = {}, toothDivs = {};
+
 for (const t of toothData) {
   const div = document.createElement('div');
   div.className = 'tooth';
@@ -89,8 +94,20 @@ for (const t of toothData) {
   bridgeImg.style.top = t.top + 'px';
   bridgeImg.style.left = t.left + 'px';
 
+  const crownImg = document.createElement('img');
+  crownImg.id = `crown-${t.id}`;
+  crownImg.src = `crown/${t.id}c.png`;
+  crownImg.style.top = t.top + 'px';
+  crownImg.style.left = t.left + 'px';
+
+  implantImgs[t.id] = implantImg;
+  missingImgs[t.id] = missingImg;
+  bridgeImgs[t.id] = bridgeImg;
+  crownImgs[t.id] = crownImg;
+  toothDivs[t.id] = div;
+
   div.addEventListener('click', () => {
-    const states = ['normal', 'implant', 'prosthetic', 'missing'];
+    const states = ['normal', 'implant', 'prosthetic', 'missing', 'crown'];
     const current = div.dataset.state;
     const next = states[(states.indexOf(current) + 1) % states.length];
     div.dataset.state = next;
@@ -99,19 +116,32 @@ for (const t of toothData) {
     implantImg.style.display = 'none';
     missingImg.style.display = 'none';
     bridgeImg.style.display = 'none';
+    crownImg.style.display = 'none';
 
     if (next === 'implant') implantImg.style.display = 'block';
     else if (next === 'missing') missingImg.style.display = 'block';
     else if (next === 'prosthetic') bridgeImg.style.display = 'block';
+    else if (next === 'crown') crownImg.style.display = 'block';
   });
 
   chart.appendChild(div);
   chart.appendChild(implantImg);
   chart.appendChild(missingImg);
   chart.appendChild(bridgeImg);
+  chart.appendChild(crownImg);
 }
 
-// 拖曳功能 for 植牙圖（僅示範第18顆，可以自行套用其他牙齒）
+function resetTeeth() {
+  for (const t of toothData) {
+    toothDivs[t.id].dataset.state = 'normal';
+    implantImgs[t.id].style.display = 'none';
+    missingImgs[t.id].style.display = 'none';
+    bridgeImgs[t.id].style.display = 'none';
+    crownImgs[t.id].style.display = 'none';
+  }
+}
+
+// 拖曳功能 for 牙齒圖片
 let draggingImg = null, offsetX = 0, offsetY = 0;
 
 chart.addEventListener('mousedown', (e) => {
