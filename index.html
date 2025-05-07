@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tooth Chart</title>
+  <meta charset="UTF-8" />
+  <title>Tooth Chart Test</title>
   <style>
     body {
       margin: 0;
@@ -10,7 +10,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100vh;
     }
     .chart {
       position: relative;
@@ -24,9 +23,16 @@
       position: absolute;
       width: 40px;
       height: 60px;
+      top: 40px;
+      left: 160px;
       cursor: pointer;
-      background-color: rgba(255, 255, 0, 0.0);
-      transition: background-color 0.3s;
+    }
+    .controls {
+      margin-top: 10px;
+      font-family: sans-serif;
+    }
+    .controls button, .controls select {
+      margin-left: 10px;
     }
     #chart img {
       position: absolute;
@@ -35,197 +41,65 @@
       pointer-events: auto;
       user-select: none;
     }
-    .controls {
-      margin-top: 10px;
-      font-family: sans-serif;
-    }
-    .controls button {
-      margin-left: 10px;
-    }
-    #positionOutput {
-      margin-top: 10px;
-      white-space: pre;
-      background: #fff;
-      padding: 10px;
-      border: 1px solid #ccc;
-      width: 90%;
-      max-width: 1000px;
-      overflow-x: auto;
-    }
   </style>
 </head>
 <body>
-<div class="controls">
-  拖曳圖示到正確位置後，可列出並下載座標。<br>
-  <button onclick="resetTeeth()">全部還原</button>
-  <button onclick="showPositions()">列出目前座標</button>
-  <button onclick="downloadPositions()">下載座標</button>
-  <select id="layerSelector" onchange="filterLayer()">
-    <option value="all">顯示全部圖層</option>
-    <option value="implant">僅植牙</option>
-    <option value="missing">僅缺牙</option>
-    <option value="bridge">僅牙橋</option>
-    <option value="crown">僅牙冠</option>
-  </select>
-</div>
-<div class="chart" id="chart" tabindex="0"></div>
-<pre id="positionOutput"></pre>
+  <div class="controls">
+    測試牙齒圖層切換：<br>
+    <select id="layerSelector" onchange="filterLayer()">
+      <option value="all">顯示全部圖層</option>
+      <option value="bridge">僅牙橋</option>
+      <option value="crown">僅牙冠</option>
+      <option value="missing">僅缺牙</option>
+    </select>
+    <button onclick="resetTooth()">重置狀態</button>
+  </div>
 
-<script>
-const chart = document.getElementById('chart');
-const toothData = [];
+  <div class="chart" id="chart">
+    <div class="tooth" id="tooth-11" title="Tooth 11"></div>
+    <img id="bridge-11" data-layer="bridge" src="11b.png" style="top: 40px; left: 160px;">
+    <img id="crown-11" data-layer="crown" src="11c.png" style="top: 40px; left: 160px;">
+    <img id="missing-11" data-layer="missing" src="11m.png" style="top: 40px; left: 160px;">
+  </div>
 
-const topY = 40;
-const bottomY = 200;
-const spacing = 55;
-const gridSize = 5;
+  <script>
+    const states = ['normal', 'bridge', 'crown', 'missing'];
+    const tooth = document.getElementById('tooth-11');
+    let stateIndex = 0;
 
-for (let i = 0; i < 32; i++) {
-  const number = i < 16 ? 18 - i : 31 + (i - 15);
-  const left = 20 + (i % 16) * spacing;
-  const top = i < 16 ? topY : bottomY;
-  toothData.push({ id: number, top, left });
-}
+    tooth.addEventListener('click', () => {
+      stateIndex = (stateIndex + 1) % states.length;
+      updateToothState(states[stateIndex]);
+    });
 
-const implantImgs = {}, missingImgs = {}, bridgeImgs = {}, crownImgs = {}, toothDivs = {};
+    function updateToothState(state) {
+      document.getElementById('bridge-11').style.display = 'none';
+      document.getElementById('crown-11').style.display = 'none';
+      document.getElementById('missing-11').style.display = 'none';
 
-for (const t of toothData) {
-  const div = document.createElement('div');
-  div.className = 'tooth';
-  div.style.top = t.top + 'px';
-  div.style.left = t.left + 'px';
-  div.dataset.state = 'normal';
-  div.title = `Tooth ${t.id}`;
-
-  const createImg = (type, folder, suffix) => {
-    const img = document.createElement('img');
-    img.id = `${type}-${t.id}`;
-    img.dataset.layer = type;
-    img.src = `${folder}/${t.id}${suffix}.png`;
-    img.style.top = t.top + 'px';
-    img.style.left = t.left + 'px';
-    return img;
-  };
-
-  const implantImg = createImg('implant', 'implant', 'i');
-  const missingImg = createImg('missing', 'missing', 'm');
-  const bridgeImg = createImg('bridge', 'bridge', 'b');
-  const crownImg = createImg('crown', 'crown', 'c');
-
-  implantImgs[t.id] = implantImg;
-  missingImgs[t.id] = missingImg;
-  bridgeImgs[t.id] = bridgeImg;
-  crownImgs[t.id] = crownImg;
-  toothDivs[t.id] = div;
-
-  div.addEventListener('click', () => {
-    const states = ['normal', 'implant', 'prosthetic', 'missing', 'crown'];
-    const current = div.dataset.state;
-    const next = states[(states.indexOf(current) + 1) % states.length];
-    div.dataset.state = next;
-    div.className = 'tooth';
-
-    implantImg.style.display = 'none';
-    missingImg.style.display = 'none';
-    bridgeImg.style.display = 'none';
-    crownImg.style.display = 'none';
-
-    if (next === 'implant') implantImg.style.display = 'block';
-    else if (next === 'missing') missingImg.style.display = 'block';
-    else if (next === 'prosthetic') bridgeImg.style.display = 'block';
-    else if (next === 'crown') crownImg.style.display = 'block';
-  });
-
-  chart.appendChild(div);
-  chart.appendChild(implantImg);
-  chart.appendChild(missingImg);
-  chart.appendChild(bridgeImg);
-  chart.appendChild(crownImg);
-}
-
-function resetTeeth() {
-  for (const t of toothData) {
-    toothDivs[t.id].dataset.state = 'normal';
-    implantImgs[t.id].style.display = 'none';
-    missingImgs[t.id].style.display = 'none';
-    bridgeImgs[t.id].style.display = 'none';
-    crownImgs[t.id].style.display = 'none';
-  }
-}
-
-let draggingImg = null, offsetX = 0, offsetY = 0;
-
-chart.addEventListener('mousedown', (e) => {
-  if (e.target.tagName === 'IMG') {
-    draggingImg = e.target;
-    const rect = draggingImg.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-  }
-});
-
-chart.addEventListener('mousemove', (e) => {
-  if (!draggingImg) return;
-  const rect = chart.getBoundingClientRect();
-  let newLeft = e.clientX - rect.left - offsetX;
-  let newTop = e.clientY - rect.top - offsetY;
-  newLeft = Math.round(newLeft / gridSize) * gridSize;
-  newTop = Math.round(newTop / gridSize) * gridSize;
-  draggingImg.style.left = newLeft + 'px';
-  draggingImg.style.top = newTop + 'px';
-});
-
-chart.addEventListener('mouseup', () => {
-  draggingImg = null;
-});
-
-chart.addEventListener('keydown', (e) => {
-  if (!document.activeElement.classList.contains('chart')) return;
-  const activeImgs = [...document.querySelectorAll('#chart img')].filter(img => img.style.display === 'block');
-  const moveBy = e.shiftKey ? 5 : 1;
-  for (const img of activeImgs) {
-    const currentLeft = parseInt(img.style.left || 0);
-    const currentTop = parseInt(img.style.top || 0);
-    if (e.key === 'ArrowLeft') img.style.left = (currentLeft - moveBy) + 'px';
-    if (e.key === 'ArrowRight') img.style.left = (currentLeft + moveBy) + 'px';
-    if (e.key === 'ArrowUp') img.style.top = (currentTop - moveBy) + 'px';
-    if (e.key === 'ArrowDown') img.style.top = (currentTop + moveBy) + 'px';
-  }
-});
-
-function showPositions() {
-  let output = '';
-  document.querySelectorAll('#chart img').forEach(img => {
-    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
-  });
-  document.getElementById('positionOutput').textContent = output;
-}
-
-function downloadPositions() {
-  let output = '';
-  document.querySelectorAll('#chart img').forEach(img => {
-    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
-  });
-  const blob = new Blob([output], { type: 'text/plain' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'tooth_positions.txt';
-  link.click();
-}
-
-function filterLayer() {
-  const selected = document.getElementById('layerSelector').value;
-  document.querySelectorAll('#chart img').forEach(img => {
-    const layer = img.dataset.layer;
-    if (selected === 'all' || selected === layer) {
-      img.style.pointerEvents = 'auto';
-      img.style.opacity = '1';
-    } else {
-      img.style.pointerEvents = 'none';
-      img.style.opacity = '0.3';
+      if (state === 'bridge') document.getElementById('bridge-11').style.display = 'block';
+      if (state === 'crown') document.getElementById('crown-11').style.display = 'block';
+      if (state === 'missing') document.getElementById('missing-11').style.display = 'block';
     }
-  });
-}
-</script>
+
+    function resetTooth() {
+      stateIndex = 0;
+      updateToothState('normal');
+    }
+
+    function filterLayer() {
+      const selected = document.getElementById('layerSelector').value;
+      document.querySelectorAll('#chart img').forEach(img => {
+        const layer = img.dataset.layer;
+        if (selected === 'all' || selected === layer) {
+          img.style.opacity = '1';
+          img.style.pointerEvents = 'auto';
+        } else {
+          img.style.opacity = '0.3';
+          img.style.pointerEvents = 'none';
+        }
+      });
+    }
+  </script>
 </body>
 </html>
