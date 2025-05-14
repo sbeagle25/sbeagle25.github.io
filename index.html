@@ -15,9 +15,9 @@
     .chart {
       position: relative;
       background: url('teeth.png') no-repeat left top;
+      background-size: auto;
       width: 1694px;
       height: 645px;
-      background-size: auto;
       margin-top: 20px;
     }
     .controls {
@@ -36,9 +36,8 @@
       top: 0;
       left: 0;
       display: none;
-      pointer-events: auto; 
+      pointer-events: auto;
       user-select: none;
-      -webkit-user-drag: none;
     }
     #positionOutput {
       margin-top: 10px;
@@ -100,6 +99,10 @@
         img.id = `${state}-${t.id}`;
         img.dataset.tooth = t.id;
         img.dataset.state = state;
+        img.addEventListener('click', (e) => {
+          if (!dragging) nextState(t.id);
+          e.stopPropagation();
+        });
         wrapper.appendChild(img);
         imgMap[t.id][state] = img;
       }
@@ -148,7 +151,6 @@
       link.click();
     }
 
-    // 拖曳與吸附功能
     let dragging = null;
     let offsetX, offsetY;
 
