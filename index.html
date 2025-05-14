@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Tooth Chart</title>
   <style>
     body {
@@ -10,29 +10,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      height: 100vh;
     }
     .chart {
       position: relative;
-      background: url('teeth.png') no-repeat center;
-      background-size: contain;
+      background: url('teeth.png') no-repeat left top;
       width: 917px;
       height: 308px;
+      background-size: auto;
       margin-top: 20px;
     }
-    .tooth-wrapper {
-      position: absolute;
-      cursor: pointer;
-    }
-    .tooth-wrapper img {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: none;
-      user-select: none;
-    }
     .controls {
-      font-family: sans-serif;
       margin-top: 10px;
+      font-family: sans-serif;
     }
     .controls button {
       margin-left: 10px;
@@ -47,130 +37,128 @@
       max-width: 1000px;
       overflow-x: auto;
     }
+    #chart img {
+      position: absolute;
+      display: none;
+      pointer-events: auto;
+      user-select: none;
+      /* 注意：不指定 width 或 height，使用原始圖片大小 */
+    }
   </style>
 </head>
 <body>
-  <div class="controls">
-    點擊每顆牙圖層，切換 crown → bridge → missing → implant → 無。<br>
-    <button onclick="showPositions()">列出目前座標</button>
-    <button onclick="downloadPositions()">下載座標</button>
-  </div>
 
-  <div class="chart" id="chart"></div>
-  <pre id="positionOutput"></pre>
+<div class="controls">
+  <button onclick="resetImages()">全部還原</button>
+  <button onclick="showPositions()">列出目前座標</button>
+  <button onclick="downloadPositions()">下載座標</button>
+</div>
 
-  <script>
-    const chart = document.getElementById('chart');
-    const toothData = [];
-    const topY = 40;
-    const bottomY = 200;
-    const spacing = 55;
+<div class="chart" id="chart" tabindex="0"></div>
+<pre id="positionOutput"></pre>
 
-    for (let i = 0; i < 32; i++) {
-      const number = i < 16 ? 18 - i : 31 + (i - 15);
-      const left = 20 + (i % 16) * spacing;
-      const top = i < 16 ? topY : bottomY;
-      toothData.push({ id: number, top, left });
-    }
+<script>
+const chart = document.getElementById('chart');
 
-    const toothStates = {};
-    const imgMap = {};
+// 只測試牙齒編號 11，手動設定位置
+const testTooth = {
+  id: 11,
+  top: 40,
+  left: 160
+};
 
-    for (const t of toothData) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'tooth-wrapper';
-      wrapper.style.top = t.top + 'px';
-      wrapper.style.left = t.left + 'px';
-      wrapper.dataset.tooth = t.id;
-      wrapper.addEventListener('click', (e) => {
-        if (!dragging) nextState(t.id);
-        e.stopPropagation();
-      });
-      chart.appendChild(wrapper);
+// 建立圖層圖片
+const createImg = (id, src, layer) => {
+  const img = document.createElement('img');
+  img.id = id;
+  img.src = src;
+  img.dataset.layer = layer;
+  img.style.left = testTooth.left + 'px';
+  img.style.top = testTooth.top + 'px';
+  chart.appendChild(img);
+  return img;
+};
 
-      const states = ['crown', 'bridge', 'missing', 'implant'];
-      imgMap[t.id] = {};
+// 初始化圖層
+const crownImg = createImg('crown-11', '/crown/11c.png', 'crown');
+const bridgeImg = createImg('bridge-11', '/bridge/11b.png', 'bridge');
+const missingImg = createImg('missing-11', '/missing/11m.png', 'missing');
 
-      for (const state of states) {
-        const suffix = { crown: 'c', bridge: 'b', missing: 'm', implant: 'i' }[state];
-        const img = document.createElement('img');
-        img.src = `/${state}/${t.id}${suffix}.png`;
-        img.dataset.tooth = t.id;
-        img.dataset.state = state;
-        img.style.pointerEvents = 'none';  // 若你希望圖片本身不可拖動就加上
-        wrapper.appendChild(img);
-        imgMap[t.id][state] = img;
-      }
+// 控制圖層切換顯示（點 chart 區域會輪替圖層）
+const states = ['none', 'crown', 'bridge', 'missing'];
+let stateIndex = 0;
 
-      toothStates[t.id] = { index: 0 };
-      updateToothDisplay(t.id);
-    }
+chart.addEventListener('click', () => {
+  stateIndex = (stateIndex + 1) % states.length;
+  const state = states[stateIndex];
 
-    function nextState(id) {
-      toothStates[id].index = (toothStates[id].index + 1) % 5;
-      updateToothDisplay(id);
-    }
+  crownImg.style.display = 'none';
+  bridgeImg.style.display = 'none';
+  missingImg.style.display = 'none';
 
-    function updateToothDisplay(id) {
-      const states = ['none', 'crown', 'bridge', 'missing', 'implant'];
-      const current = states[toothStates[id].index];
-      for (const state in imgMap[id]) {
-        imgMap[id][state].style.display = (state === current) ? 'block' : 'none';
-      }
-      if (current === 'none') {
-        for (const state in imgMap[id]) {
-          imgMap[id][state].style.display = 'none';
-        }
-      }
-    }
+  if (state === 'crown') crownImg.style.display = 'block';
+  if (state === 'bridge') bridgeImg.style.display = 'block';
+  if (state === 'missing') missingImg.style.display = 'block';
+});
 
-    function showPositions() {
-      let output = '';
-      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
-        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
-      });
-      document.getElementById('positionOutput').textContent = output;
-    }
+// 拖曳功能
+let draggingImg = null, offsetX = 0, offsetY = 0;
 
-    function downloadPositions() {
-      let output = '';
-      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
-        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
-      });
-      const blob = new Blob([output], { type: 'text/plain' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'tooth_positions.txt';
-      link.click();
-    }
+chart.addEventListener('mousedown', (e) => {
+  if (e.target.tagName === 'IMG') {
+    draggingImg = e.target;
+    const rect = draggingImg.getBoundingClientRect();
+    const chartRect = chart.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+  }
+});
+chart.addEventListener('mousemove', (e) => {
+  if (!draggingImg) return;
+  const rect = chart.getBoundingClientRect();
+  draggingImg.style.left = (e.clientX - rect.left - offsetX) + 'px';
+  draggingImg.style.top = (e.clientY - rect.top - offsetY) + 'px';
+});
+chart.addEventListener('mouseup', () => {
+  draggingImg = null;
+});
 
-    // 拖曳功能
-    let dragging = null;
-    let offsetX, offsetY;
+// 工具功能
+function resetImages() {
+  crownImg.style.display = 'none';
+  bridgeImg.style.display = 'none';
+  missingImg.style.display = 'none';
+  stateIndex = 0;
+  crownImg.style.left = testTooth.left + 'px';
+  crownImg.style.top = testTooth.top + 'px';
+  bridgeImg.style.left = testTooth.left + 'px';
+  bridgeImg.style.top = testTooth.top + 'px';
+  missingImg.style.left = testTooth.left + 'px';
+  missingImg.style.top = testTooth.top + 'px';
+}
 
-    chart.addEventListener('mousedown', e => {
-      if (e.target.classList.contains('tooth-wrapper')) {
-        dragging = e.target;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-      }
-    });
+function showPositions() {
+  const imgs = [crownImg, bridgeImg, missingImg];
+  let output = '';
+  for (const img of imgs) {
+    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+  }
+  document.getElementById('positionOutput').textContent = output;
+}
 
-    chart.addEventListener('mousemove', e => {
-      if (dragging) {
-        const rect = chart.getBoundingClientRect();
-        let x = e.clientX - rect.left - offsetX;
-        let y = e.clientY - rect.top - offsetY;
-        x = Math.round(x / 5) * 5;
-        y = Math.round(y / 5) * 5;
-        dragging.style.left = x + 'px';
-        dragging.style.top = y + 'px';
-      }
-    });
+function downloadPositions() {
+  const imgs = [crownImg, bridgeImg, missingImg];
+  let output = '';
+  for (const img of imgs) {
+    output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+  }
+  const blob = new Blob([output], { type: 'text/plain' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'tooth_positions.txt';
+  link.click();
+}
+</script>
 
-    chart.addEventListener('mouseup', () => {
-      dragging = null;
-    });
-  </script>
 </body>
 </html>
