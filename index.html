@@ -27,11 +27,19 @@
     .controls button {
       margin-left: 10px;
     }
-    #chart img {
+    .tooth-wrapper {
       position: absolute;
       width: 40px;
+      height: 40px;
+      cursor: pointer;
+    }
+    .tooth-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 40px;
       display: none;
-      pointer-events: auto;
+      pointer-events: none;
       user-select: none;
     }
     #positionOutput {
@@ -73,6 +81,15 @@
     const imgMap = {};
 
     for (const t of toothData) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'tooth-wrapper';
+      wrapper.style.top = t.top + 'px';
+      wrapper.style.left = t.left + 'px';
+      wrapper.style.position = 'absolute';
+      wrapper.dataset.tooth = t.id;
+      wrapper.addEventListener('click', () => nextState(t.id));
+      chart.appendChild(wrapper);
+
       const states = ['crown', 'bridge', 'missing', 'implant'];
       imgMap[t.id] = {};
 
@@ -83,26 +100,10 @@
         img.id = `${state}-${t.id}`;
         img.dataset.tooth = t.id;
         img.dataset.state = state;
-        img.style.top = t.top + 'px';
-        img.style.left = t.left + 'px';
-        chart.appendChild(img);
+        wrapper.appendChild(img);
         imgMap[t.id][state] = img;
-
-        img.addEventListener('click', (e) => {
-          e.stopPropagation();
-          nextState(t.id);
-        });
-
-        // 拖曳功能
-        img.addEventListener('mousedown', (e) => {
-          draggingImg = img;
-          const rect = draggingImg.getBoundingClientRect();
-          offsetX = e.clientX - rect.left;
-          offsetY = e.clientY - rect.top;
-        });
       }
 
-      // 初始化狀態
       toothStates[t.id] = { index: 0 };
       updateToothDisplay(t.id);
     }
@@ -127,34 +128,18 @@
       }
     }
 
-    // 拖曳功能
-    let draggingImg = null, offsetX = 0, offsetY = 0;
-
-    chart.addEventListener('mousemove', (e) => {
-      if (!draggingImg) return;
-      const rect = chart.getBoundingClientRect();
-      let newLeft = e.clientX - rect.left - offsetX;
-      let newTop = e.clientY - rect.top - offsetY;
-      draggingImg.style.left = newLeft + 'px';
-      draggingImg.style.top = newTop + 'px';
-    });
-
-    chart.addEventListener('mouseup', () => {
-      draggingImg = null;
-    });
-
     function showPositions() {
       let output = '';
-      document.querySelectorAll('#chart img').forEach(img => {
-        output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
+        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
       });
       document.getElementById('positionOutput').textContent = output;
     }
 
     function downloadPositions() {
       let output = '';
-      document.querySelectorAll('#chart img').forEach(img => {
-        output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
+        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
       });
       const blob = new Blob([output], { type: 'text/plain' });
       const link = document.createElement('a');
@@ -162,6 +147,37 @@
       link.download = 'tooth_positions.txt';
       link.click();
     }
+
+    // 拖曳與吸附功能
+    let dragging = null;
+    let offsetX, offsetY;
+
+    document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
+      wrapper.addEventListener('mousedown', e => {
+        dragging = wrapper;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+      });
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (dragging) {
+        const rect = chart.getBoundingClientRect();
+        let x = e.clientX - rect.left - offsetX;
+        let y = e.clientY - rect.top - offsetY;
+
+        // 吸附對齊（5px 網格）
+        x = Math.round(x / 5) * 5;
+        y = Math.round(y / 5) * 5;
+
+        dragging.style.left = x + 'px';
+        dragging.style.top = y + 'px';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragging = null;
+    });
   </script>
 </body>
 </html>
