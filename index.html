@@ -34,13 +34,26 @@
       pointer-events: auto;
       user-select: none;
     }
+    #positionOutput {
+      margin-top: 10px;
+      white-space: pre;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      width: 90%;
+      max-width: 1000px;
+      overflow-x: auto;
+    }
   </style>
 </head>
 <body>
   <div class="controls">
-    點擊每顆牙圖層，切換 crown → bridge → missing → implant → 無。
+    點擊每顆牙圖層，切換 crown → bridge → missing → implant → 無。<br>
+    <button onclick="showPositions()">列出目前座標</button>
+    <button onclick="downloadPositions()">下載座標</button>
   </div>
   <div class="chart" id="chart"></div>
+  <pre id="positionOutput"></pre>
 
   <script>
     const chart = document.getElementById('chart');
@@ -79,6 +92,14 @@
           e.stopPropagation();
           nextState(t.id);
         });
+
+        // 拖曳功能
+        img.addEventListener('mousedown', (e) => {
+          draggingImg = img;
+          const rect = draggingImg.getBoundingClientRect();
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+        });
       }
 
       // 初始化狀態
@@ -104,6 +125,42 @@
           imgMap[id][state].style.display = 'none';
         }
       }
+    }
+
+    // 拖曳功能
+    let draggingImg = null, offsetX = 0, offsetY = 0;
+
+    chart.addEventListener('mousemove', (e) => {
+      if (!draggingImg) return;
+      const rect = chart.getBoundingClientRect();
+      let newLeft = e.clientX - rect.left - offsetX;
+      let newTop = e.clientY - rect.top - offsetY;
+      draggingImg.style.left = newLeft + 'px';
+      draggingImg.style.top = newTop + 'px';
+    });
+
+    chart.addEventListener('mouseup', () => {
+      draggingImg = null;
+    });
+
+    function showPositions() {
+      let output = '';
+      document.querySelectorAll('#chart img').forEach(img => {
+        output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+      });
+      document.getElementById('positionOutput').textContent = output;
+    }
+
+    function downloadPositions() {
+      let output = '';
+      document.querySelectorAll('#chart img').forEach(img => {
+        output += `${img.id}: left: ${img.style.left}; top: ${img.style.top};\n`;
+      });
+      const blob = new Blob([output], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'tooth_positions.txt';
+      link.click();
     }
   </script>
 </body>
