@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Tooth Chart</title>
   <style>
     body {
@@ -10,7 +10,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      height: 100vh;
     }
     .chart {
       position: relative;
@@ -19,13 +18,6 @@
       width: 917px;
       height: 308px;
       margin-top: 20px;
-    }
-    .controls {
-      margin-top: 10px;
-      font-family: sans-serif;
-    }
-    .controls button {
-      margin-left: 10px;
     }
     .tooth-wrapper {
       position: absolute;
@@ -36,8 +28,14 @@
       top: 0;
       left: 0;
       display: none;
-      pointer-events: none;
       user-select: none;
+    }
+    .controls {
+      font-family: sans-serif;
+      margin-top: 10px;
+    }
+    .controls button {
+      margin-left: 10px;
     }
     #positionOutput {
       margin-top: 10px;
@@ -57,6 +55,7 @@
     <button onclick="showPositions()">列出目前座標</button>
     <button onclick="downloadPositions()">下載座標</button>
   </div>
+
   <div class="chart" id="chart"></div>
   <pre id="positionOutput"></pre>
 
@@ -96,9 +95,9 @@
         const suffix = { crown: 'c', bridge: 'b', missing: 'm', implant: 'i' }[state];
         const img = document.createElement('img');
         img.src = `/${state}/${t.id}${suffix}.png`;
-        img.id = `${state}-${t.id}`;
         img.dataset.tooth = t.id;
         img.dataset.state = state;
+        img.style.pointerEvents = 'none';  // 若你希望圖片本身不可拖動就加上
         wrapper.appendChild(img);
         imgMap[t.id][state] = img;
       }
@@ -115,11 +114,9 @@
     function updateToothDisplay(id) {
       const states = ['none', 'crown', 'bridge', 'missing', 'implant'];
       const current = states[toothStates[id].index];
-
       for (const state in imgMap[id]) {
         imgMap[id][state].style.display = (state === current) ? 'block' : 'none';
       }
-
       if (current === 'none') {
         for (const state in imgMap[id]) {
           imgMap[id][state].style.display = 'none';
@@ -147,7 +144,7 @@
       link.click();
     }
 
-    // 拖曳與吸附功能
+    // 拖曳功能
     let dragging = null;
     let offsetX, offsetY;
 
