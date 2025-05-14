@@ -38,7 +38,7 @@
       display: none;
       pointer-events: none;
       user-select: none;
-    }    
+    }
     #positionOutput {
       margin-top: 10px;
       white-space: pre;
@@ -82,9 +82,11 @@
       wrapper.className = 'tooth-wrapper';
       wrapper.style.top = t.top + 'px';
       wrapper.style.left = t.left + 'px';
-      wrapper.style.position = 'absolute';
       wrapper.dataset.tooth = t.id;
-      wrapper.addEventListener('click', () => nextState(t.id));
+      wrapper.addEventListener('click', (e) => {
+        if (!dragging) nextState(t.id);
+        e.stopPropagation();
+      });
       chart.appendChild(wrapper);
 
       const states = ['crown', 'bridge', 'missing', 'implant'];
@@ -149,30 +151,27 @@
     let dragging = null;
     let offsetX, offsetY;
 
-    document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
-      wrapper.addEventListener('mousedown', e => {
-        dragging = wrapper;
+    chart.addEventListener('mousedown', e => {
+      if (e.target.classList.contains('tooth-wrapper')) {
+        dragging = e.target;
         offsetX = e.offsetX;
         offsetY = e.offsetY;
-      });
+      }
     });
 
-    document.addEventListener('mousemove', e => {
+    chart.addEventListener('mousemove', e => {
       if (dragging) {
         const rect = chart.getBoundingClientRect();
         let x = e.clientX - rect.left - offsetX;
         let y = e.clientY - rect.top - offsetY;
-
-        // 吸附對齊（5px 網格）
         x = Math.round(x / 5) * 5;
         y = Math.round(y / 5) * 5;
-
         dragging.style.left = x + 'px';
         dragging.style.top = y + 'px';
       }
     });
 
-    document.addEventListener('mouseup', () => {
+    chart.addEventListener('mouseup', () => {
       dragging = null;
     });
   </script>
