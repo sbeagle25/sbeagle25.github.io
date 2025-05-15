@@ -29,7 +29,7 @@
     }
     .tooth-wrapper {
       position: absolute;
-      cursor: pointer;
+      cursor: move;
     }
     .tooth-wrapper img {
       position: absolute;
@@ -155,10 +155,12 @@
     let offsetX, offsetY;
 
     chart.addEventListener('mousedown', e => {
-      if (e.target.classList.contains('tooth-wrapper')) {
-        dragging = e.target;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
+      const wrapper = e.target.closest('.tooth-wrapper');
+      if (wrapper) {
+        dragging = wrapper;
+        const rect = wrapper.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
       }
     });
 
