@@ -36,7 +36,7 @@
       top: 0;
       left: 0;
       display: none;
-      pointer-events: none; /* 防止 img 攔截滑鼠事件 */
+      pointer-events: auto;
       user-select: none;
     }
     #positionOutput {
@@ -76,7 +76,6 @@
 
     const toothStates = {};
     const imgMap = {};
-    const states = ['crown', 'bridge', 'missing', 'implant'];
 
     for (const t of toothData) {
       const wrapper = document.createElement('div');
@@ -84,27 +83,32 @@
       wrapper.style.top = t.top + 'px';
       wrapper.style.left = t.left + 'px';
       wrapper.dataset.tooth = t.id;
+      wrapper.addEventListener('click', (e) => {
+        if (!dragging) nextState(t.id);
+        e.stopPropagation();
+      });
       chart.appendChild(wrapper);
 
+      const states = ['crown', 'bridge', 'missing', 'implant'];
       imgMap[t.id] = {};
 
       for (const state of states) {
         const suffix = { crown: 'c', bridge: 'b', missing: 'm', implant: 'i' }[state];
         const img = document.createElement('img');
         img.src = `/${state}/${t.id}${suffix}.png`;
+        img.id = `${state}-${t.id}`;
+        img.dataset.tooth = t.id;
         img.dataset.state = state;
+        img.addEventListener('click', (e) => {
+          if (!dragging) nextState(t.id);
+          e.stopPropagation();
+        });
         wrapper.appendChild(img);
         imgMap[t.id][state] = img;
       }
 
       toothStates[t.id] = { index: 0 };
       updateToothDisplay(t.id);
-
-      wrapper.addEventListener('click', (e) => {
-        if (!dragging) {
-          nextState(t.id);
-        }
-      });
     }
 
     function nextState(id) {
@@ -113,15 +117,15 @@
     }
 
     function updateToothDisplay(id) {
-      const stateList = ['none', 'crown', 'bridge', 'missing', 'implant'];
-      const current = stateList[toothStates[id].index];
+      const states = ['none', 'crown', 'bridge', 'missing', 'implant'];
+      const current = states[toothStates[id].index];
 
-      for (const state of states) {
+      for (const state in imgMap[id]) {
         imgMap[id][state].style.display = (state === current) ? 'block' : 'none';
       }
 
       if (current === 'none') {
-        for (const state of states) {
+        for (const state in imgMap[id]) {
           imgMap[id][state].style.display = 'none';
         }
       }
@@ -151,12 +155,10 @@
     let offsetX, offsetY;
 
     chart.addEventListener('mousedown', e => {
-      const wrapper = e.target.closest('.tooth-wrapper');
-      if (wrapper) {
-        dragging = wrapper;
-        const rect = wrapper.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
+      if (e.target.classList.contains('tooth-wrapper')) {
+        dragging = e.target;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
       }
     });
 
