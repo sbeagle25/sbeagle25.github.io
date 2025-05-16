@@ -32,7 +32,7 @@
       width: 60px;
       height: 60px;
       pointer-events: auto;
-      cursor: move;
+      cursor: pointer;
     }
     .tooth-wrapper img {
       position: absolute;
@@ -74,6 +74,7 @@
       const number = i < 16 ? 18 - i : 31 + (i - 15);
       const left = 20 + (i % 16) * spacing;
       const top = i < 16 ? topY : bottomY;
+      console.log(`Creating tooth ${number} at top: ${top}, left: ${left}`);
       toothData.push({ id: number, top, left });
     }
 
@@ -88,25 +89,9 @@
       wrapper.style.left = t.left + 'px';
       wrapper.dataset.tooth = t.id;
 
-      let dragging = false, offsetX = 0, offsetY = 0;
-      wrapper.addEventListener('mousedown', (e) => {
-        dragging = true;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-      });
-      document.addEventListener('mousemove', (e) => {
-        if (!dragging) return;
-        const x = e.pageX - chart.offsetLeft - offsetX;
-        const y = e.pageY - chart.offsetTop - offsetY;
-        const snappedX = Math.round(x / 5) * 5;
-        const snappedY = Math.round(y / 5) * 5;
-        wrapper.style.left = snappedX + 'px';
-        wrapper.style.top = snappedY + 'px';
-      });
-      document.addEventListener('mouseup', () => dragging = false);
-
       wrapper.addEventListener('click', (e) => {
-        if (!dragging) nextState(t.id);
+        console.log(`Clicked on tooth ${t.id}`);
+        nextState(t.id);
         e.stopPropagation();
       });
 
@@ -124,12 +109,14 @@
         imgMap[t.id][state] = img;
       }
 
-      toothStates[t.id] = { index: -1 };
+      toothStates[t.id] = { index: -1 }; // -1 表示 none
       updateToothDisplay(t.id);
     }
 
     function nextState(id) {
+      console.log(`Current index before increment: ${toothStates[id].index}`);
       toothStates[id].index = (toothStates[id].index + 1) % (states.length + 1);
+      console.log(`Next index after increment: ${toothStates[id].index}`);
       updateToothDisplay(id);
     }
 
@@ -140,6 +127,7 @@
       const currentIndex = toothStates[id].index;
       if (currentIndex >= 0) {
         const current = states[currentIndex];
+        console.log(`Tooth ${id} state set to ${current}`);
         imgMap[id][current].style.display = 'block';
       }
     }
