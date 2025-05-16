@@ -29,7 +29,6 @@
     }
     .tooth-wrapper {
       position: absolute;
-      cursor: pointer;
     }
     .tooth-wrapper img {
       position: absolute;
@@ -38,6 +37,7 @@
       display: none;
       pointer-events: auto;
       user-select: none;
+      cursor: pointer;
     }
     #positionOutput {
       margin-top: 10px;
@@ -83,10 +83,6 @@
       wrapper.style.top = t.top + 'px';
       wrapper.style.left = t.left + 'px';
       wrapper.dataset.tooth = t.id;
-      wrapper.addEventListener('click', (e) => {
-        if (!dragging) nextState(t.id);
-        e.stopPropagation();
-      });
       chart.appendChild(wrapper);
 
       const states = ['crown', 'bridge', 'missing', 'implant'];
@@ -100,7 +96,7 @@
         img.dataset.tooth = t.id;
         img.dataset.state = state;
         img.addEventListener('click', (e) => {
-          if (!dragging) nextState(t.id);
+          nextState(t.id);
           e.stopPropagation();
         });
         wrapper.appendChild(img);
@@ -150,33 +146,6 @@
       link.download = 'tooth_positions.txt';
       link.click();
     }
-
-    let dragging = null;
-    let offsetX, offsetY;
-
-    chart.addEventListener('mousedown', e => {
-      if (e.target.classList.contains('tooth-wrapper')) {
-        dragging = e.target;
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-      }
-    });
-
-    chart.addEventListener('mousemove', e => {
-      if (dragging) {
-        const rect = chart.getBoundingClientRect();
-        let x = e.clientX - rect.left - offsetX;
-        let y = e.clientY - rect.top - offsetY;
-        x = Math.round(x / 5) * 5;
-        y = Math.round(y / 5) * 5;
-        dragging.style.left = x + 'px';
-        dragging.style.top = y + 'px';
-      }
-    });
-
-    chart.addEventListener('mouseup', () => {
-      dragging = null;
-    });
   </script>
 </body>
 </html>
