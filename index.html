@@ -29,7 +29,6 @@
     }
     .tooth-wrapper {
       position: absolute;
-      cursor: move;
     }
     .tooth-wrapper img {
       position: absolute;
@@ -38,6 +37,7 @@
       display: none;
       pointer-events: auto;
       user-select: none;
+      cursor: pointer;
     }
     #positionOutput {
       margin-top: 10px;
@@ -83,10 +83,6 @@
       wrapper.style.top = t.top + 'px';
       wrapper.style.left = t.left + 'px';
       wrapper.dataset.tooth = t.id;
-      wrapper.addEventListener('click', (e) => {
-        if (!dragging) nextState(t.id);
-        e.stopPropagation();
-      });
       chart.appendChild(wrapper);
 
       const states = ['crown', 'bridge', 'missing', 'implant'];
