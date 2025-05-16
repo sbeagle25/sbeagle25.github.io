@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tooth Chart</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+    .chart {
+      position: relative;
+      background: url('teeth.png') no-repeat left top;
+      background-size: auto;
+      width: 1694px;
+      height: 645px;
+      margin-top: 20px;
+    }
+    .controls {
+      margin-top: 10px;
+      font-family: sans-serif;
+    }
+    .controls button {
+      margin-left: 10px;
+    }
+    .tooth-wrapper {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .tooth-wrapper img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+      pointer-events: none;
+      user-select: none;
+    }
+    #positionOutput {
+      margin-top: 10px;
+      white-space: pre;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      width: 90%;
+      max-width: 1000px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    點擊每顆牙圖層，切換 crown → bridge → missing → implant → 無。<br>
+    <button onclick="showPositions()">列出目前座標</button>
+    <button onclick="downloadPositions()">下載座標</button>
+  </div>
+  <div class="chart" id="chart"></div>
+  <pre id="positionOutput"></pre>
+
+  <script>
+    const chart = document.getElementById('chart');
+    const toothData = [];
+    const topY = 40;
+    const bottomY = 200;
+    const spacing = 55;
+
+    for (let i = 0; i < 32; i++) {
+      const number = i < 16 ? 18 - i : 31 + (i - 15);
+      const left = 20 + (i % 16) * spacing;
+      const top = i < 16 ? topY : bottomY;
+      console.log(`Creating tooth ${number} at top: ${top}, left: ${left}`);
+      toothData.push({ id: number, top, left });
+    }
+
+    const toothStates = {};
+    const imgMap = {};
+    const states = ['crown', 'bridge', 'missing', 'implant'];
+
+    for (const t of toothData) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'tooth-wrapper';
+      wrapper.style.top = t.top + 'px';
+      wrapper.style.left = t.left + 'px';
+      wrapper.dataset.tooth = t.id;
+
+      wrapper.addEventListener('click', (e) => {
+        console.log(`Clicked on tooth ${t.id}`);
+        nextState(t.id);
+        e.stopPropagation();
+      });
+
+      chart.appendChild(wrapper);
+      imgMap[t.id] = {};
+
+      for (const state of states) {
+        const suffix = { crown: 'c', bridge: 'b', missing: 'm', implant: 'i' }[state];
+        const img = document.createElement('img');
+        img.src = `/${state}/${t.id}${suffix}.png`;
+        img.id = `${state}-${t.id}`;
+        img.dataset.tooth = t.id;
+        img.dataset.state = state;
+        wrapper.appendChild(img);
+        imgMap[t.id][state] = img;
+      }
+
+      toothStates[t.id] = { index: -1 }; // -1 表示 none
+      updateToothDisplay(t.id);
+    }
+
+    function nextState(id) {
+      console.log(`Current index before increment: ${toothStates[id].index}`);
+      toothStates[id].index = (toothStates[id].index + 1) % (states.length + 1);
+      console.log(`Next index after increment: ${toothStates[id].index}`);
+      updateToothDisplay(id);
+    }
+
+    function updateToothDisplay(id) {
+      for (const state of states) {
+        imgMap[id][state].style.display = 'none';
+      }
+      const currentIndex = toothStates[id].index;
+      if (currentIndex >= 0) {
+        const current = states[currentIndex];
+        console.log(`Tooth ${id} state set to ${current}`);
+        imgMap[id][current].style.display = 'block';
+      }
+    }
+
+    function showPositions() {
+      let output = '';
+      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
+        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
+      });
+      document.getElementById('positionOutput').textContent = output;
+    }
+
+    function downloadPositions() {
+      let output = '';
+      document.querySelectorAll('.tooth-wrapper').forEach(wrapper => {
+        output += `tooth-${wrapper.dataset.tooth}: left: ${wrapper.style.left}; top: ${wrapper.style.top};\n`;
+      });
+      const blob = new Blob([output], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'tooth_positions.txt';
+      link.click();
+    }
+  </script>
+</body>
+</html>
