@@ -71,6 +71,7 @@
       const number = i < 16 ? 18 - i : 31 + (i - 15);
       const left = 20 + (i % 16) * spacing;
       const top = i < 16 ? topY : bottomY;
+      console.log(`Creating tooth ${number} at top: ${top}, left: ${left}`);
       toothData.push({ id: number, top, left });
     }
 
@@ -97,6 +98,7 @@
         img.dataset.state = state;
         img.style.pointerEvents = 'auto';
         img.addEventListener('click', (e) => {
+          console.log(`Clicked on tooth ${t.id}`);
           nextState(t.id);
           e.stopPropagation();
         });
@@ -109,7 +111,9 @@
     }
 
     function nextState(id) {
+      console.log(`Current index before increment: ${toothStates[id].index}`);
       toothStates[id].index = (toothStates[id].index + 1) % (states.length + 1);
+      console.log(`Next index after increment: ${toothStates[id].index}`);
       updateToothDisplay(id);
     }
 
@@ -120,6 +124,7 @@
       const currentIndex = toothStates[id].index;
       if (currentIndex >= 0) {
         const current = states[currentIndex];
+        console.log(`Tooth ${id} state set to ${current}`);
         imgMap[id][current].style.display = 'block';
       }
     }
