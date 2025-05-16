@@ -76,6 +76,7 @@
 
     const toothStates = {};
     const imgMap = {};
+    const states = ['crown', 'bridge', 'missing', 'implant'];
 
     for (const t of toothData) {
       const wrapper = document.createElement('div');
@@ -85,7 +86,6 @@
       wrapper.dataset.tooth = t.id;
       chart.appendChild(wrapper);
 
-      const states = ['crown', 'bridge', 'missing', 'implant'];
       imgMap[t.id] = {};
 
       for (const state of states) {
@@ -95,6 +95,7 @@
         img.id = `${state}-${t.id}`;
         img.dataset.tooth = t.id;
         img.dataset.state = state;
+        img.style.pointerEvents = 'auto';
         img.addEventListener('click', (e) => {
           nextState(t.id);
           e.stopPropagation();
@@ -103,27 +104,23 @@
         imgMap[t.id][state] = img;
       }
 
-      toothStates[t.id] = { index: 0 };
+      toothStates[t.id] = { index: -1 }; // -1 表示 none
       updateToothDisplay(t.id);
     }
 
     function nextState(id) {
-      toothStates[id].index = (toothStates[id].index + 1) % 5;
+      toothStates[id].index = (toothStates[id].index + 1) % (states.length + 1);
       updateToothDisplay(id);
     }
 
     function updateToothDisplay(id) {
-      const states = ['none', 'crown', 'bridge', 'missing', 'implant'];
-      const current = states[toothStates[id].index];
-
-      for (const state in imgMap[id]) {
-        imgMap[id][state].style.display = (state === current) ? 'block' : 'none';
+      for (const state of states) {
+        imgMap[id][state].style.display = 'none';
       }
-
-      if (current === 'none') {
-        for (const state in imgMap[id]) {
-          imgMap[id][state].style.display = 'none';
-        }
+      const currentIndex = toothStates[id].index;
+      if (currentIndex >= 0) {
+        const current = states[currentIndex];
+        imgMap[id][current].style.display = 'block';
       }
     }
 
